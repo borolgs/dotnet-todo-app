@@ -1,5 +1,4 @@
 using App;
-using App.Config;
 using App.Db;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -9,16 +8,14 @@ using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddDbContextPool<DbCtx>((opt) => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
 if (builder.Environment.IsDevelopment()) {
   builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-} else {
-  builder.Logging.AddJsonConsole();
 }
 
+// https://learn.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-8.0
+builder.Logging.AddJsonConsole();
 
 // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-8.0
 builder.Services.AddHealthChecks().AddDbContextCheck<DbCtx>();

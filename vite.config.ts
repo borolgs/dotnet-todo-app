@@ -15,7 +15,7 @@ export default defineConfig({
   plugins: [
     react(),
     babel({
-      include: ['./src/**'],
+      include: ['./client/**'],
       extensions: ['.ts', '.tsx'],
       babelHelpers: 'bundled',
     }),
@@ -25,7 +25,7 @@ export default defineConfig({
     alias: [
       {
         find: '~',
-        replacement: path.resolve('src'),
+        replacement: path.resolve('client'),
       },
     ],
   },
@@ -37,7 +37,7 @@ export default defineConfig({
       ? {
           protocol: 'ws',
           host,
-          port: 1421,
+          port: 4000,
         }
       : undefined,
   },
