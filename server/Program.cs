@@ -10,9 +10,7 @@ using OpenTelemetry.Metrics;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.Configure<ApiConfig>(builder.Configuration.GetSection("ApiConfig"));
-
-builder.Services.AddDbContextPool<DbCtx>((opt) => opt.UseNpgsql(builder.Configuration.GetValue<string>("AppConfig:DBConnection")));
+builder.Services.AddDbContextPool<DbCtx>((opt) => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 if (builder.Environment.IsDevelopment()) {
@@ -77,15 +75,16 @@ app.UseSwaggerUI(config => {
 
 app.UseRateLimiter();
 
-app.MapIdentityApi<IdentityUser>().WithTags(["Auth"]);
 app.MapGet("/health", async (HealthCheckService healthCheckService) => {
   var report = await healthCheckService.CheckHealthAsync();
   if (report.Status == HealthStatus.Healthy) {
     return Results.Ok(report);
   }
   return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
-});
-app.MapGet("/ready", () => Results.Ok());
+}).ExcludeFromDescription();
+app.MapGet("/ready", () => Results.Ok()).ExcludeFromDescription();
+
+app.MapIdentityApi<IdentityUser>().WithTags(["Auth"]);
 
 app.RegisterTodosRoutes();
 
