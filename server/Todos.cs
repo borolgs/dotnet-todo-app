@@ -3,6 +3,7 @@ using App.Db;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
 namespace App;
 
@@ -27,7 +28,8 @@ public static class Todos {
   public static void RegisterTodosRoutes(this WebApplication app) {
 
     var router = app.MapGroup("/")
-    // .RequireAuthorization()
+    .RequireAuthorization()
+    .AddFluentValidationAutoValidation()
     .WithOpenApi();
 
     router.MapGet("/api/v1/todos", GetAllTodos);
@@ -54,13 +56,7 @@ public static class Todos {
             : TypedResults.NotFound();
   }
 
-  static async Task<Results<Created<Todo>, NotFound, BadRequest<IDictionary<string, string[]>>>> CreateTodo(IValidator<CreateTodoIn> validator, CreateTodoIn todoIn, DbCtx db) {
-    var validationResult = await validator.ValidateAsync(todoIn);
-
-    if (!validationResult.IsValid) {
-      return TypedResults.BadRequest(validationResult.ToDictionary());
-    }
-
+  static async Task<Results<Created<Todo>, NotFound, BadRequest>> CreateTodo(CreateTodoIn todoIn, DbCtx db) {
     var todo = new Todo {
       Name = todoIn.Name
     };

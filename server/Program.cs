@@ -1,13 +1,14 @@
 using App;
 using App.Db;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using OpenTelemetry.Metrics;
+using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,7 +61,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddFluentValidationClientsideAdapters();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTodoInValidator>();
 builder.Services.AddFluentValidationRulesToSwagger();
 
