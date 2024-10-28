@@ -1,5 +1,6 @@
 
 using App.Db;
+using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,23 @@ public class Todo {
   public bool IsComplete { get; set; }
 }
 
+public class CreateTodoIn {
+  public required string Name { get; set; }
+}
+
+public class CreateTodoInValidator : AbstractValidator<CreateTodoIn> {
+  public CreateTodoInValidator() {
+    RuleFor(sample => sample.Name).NotNull().MinimumLength(3);
+  }
+}
+
+
 public static class Todos {
   public static void RegisterTodosRoutes(this WebApplication app) {
 
-    var router = app.MapGroup("/").RequireAuthorization().WithOpenApi();
+    var router = app.MapGroup("/")
+    // .RequireAuthorization()
+    .WithOpenApi();
 
     router.MapGet("/api/v1/todos", GetAllTodos);
     router.MapGet("/api/v1/todos/complete", GetCompleteTodos);
@@ -40,7 +54,16 @@ public static class Todos {
             : TypedResults.NotFound();
   }
 
-  static async Task<Results<Created<Todo>, NotFound, BadRequest>> CreateTodo(Todo todo, DbCtx db) {
+  static async Task<Results<Created<Todo>, NotFound, BadRequest<IDictionary<string, string[]>>>> CreateTodo(IValidator<CreateTodoIn> validator, CreateTodoIn todoIn, DbCtx db) {
+    var validationResult = await validator.ValidateAsync(todoIn);
+
+    if (!validationResult.IsValid) {
+      return TypedResults.BadRequest(validationResult.ToDictionary());
+    }
+
+    var todo = new Todo {
+      Name = todoIn.Name
+    };
     db.Todos.Add(todo);
     await db.SaveChangesAsync();
 

@@ -1,5 +1,8 @@
 using App;
 using App.Db;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +10,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
 builder.Services.AddDbContextPool<DbCtx>((opt) => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -53,15 +59,17 @@ builder.Services.AddOpenTelemetry().WithMetrics(
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateTodoInValidator>();
+builder.Services.AddFluentValidationRulesToSwagger();
+
 var app = builder.Build();
 
+// https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/handle-errors?view=aspnetcore-8.0
+// app.UseExceptionHandler();
 
-app.UseExceptionHandler(exceptionHandlerApp =>
-  exceptionHandlerApp.Run(async httpContext => {
-    // TODO: handle error
-    // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/handle-errors?view=aspnetcore-8.0
-    await Results.Problem().ExecuteAsync(httpContext);
-  }));
+app.UseHsts();
 
 app.UseHttpLogging();
 
