@@ -55,8 +55,12 @@ public static class AuthExtensions {
         .AddApiEndpoints()
         .AddEntityFrameworkStores<DbCtx>();
 
-    // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-logging/?view=aspnetcore-8.0#http-logging-options
-    services.AddHttpLogging(options => { });
+    services.ConfigureApplicationCookie(options => {
+      options.Events.OnRedirectToLogin = context => {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+      };
+    });
   }
 
   public static void AddAuthEndpoints(this WebApplication app) {

@@ -98,3 +98,5 @@ app.AddTodosEndpoints();
 
 
 app.Run();
+
+public partial class Program { }
