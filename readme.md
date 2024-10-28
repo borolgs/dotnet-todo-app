@@ -1,4 +1,4 @@
-# SoftwaresMarket
+# ASP.NET Core Example App
 
 ## Usage
 

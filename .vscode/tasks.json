@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/softwaremarket.sln",
+        "${workspaceFolder}/ExampleApp.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -19,7 +19,7 @@
       "type": "process",
       "args": [
         "publish",
-        "${workspaceFolder}/softwaremarket.sln",
+        "${workspaceFolder}/ExampleApp.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary;ForceNoAlign"
       ],
@@ -33,7 +33,7 @@
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/softwaremarket.sln"
+        "${workspaceFolder}/ExampleApp.sln"
       ],
       "problemMatcher": "$msCompile"
     }
