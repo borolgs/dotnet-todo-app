@@ -30,7 +30,8 @@ public class CreateTodoInValidator : AbstractValidator<CreateTodoIn> {
 public static class Todos {
 
   public static void AddTodoServices(this IServiceCollection services) {
-    services.AddHostedService<UserEventConsumer>();
+    services.AddHostedService<TodoUserEventConsumer>();
+    services.AddSingleton<TodoUserEventsProcessor>();
   }
 
   public static void AddTodosEndpoints(this WebApplication app) {
@@ -99,24 +100,23 @@ public static class Todos {
 
     return TypedResults.NotFound();
   }
-
 }
 
-class UserEventConsumer : BackgroundService {
-  private readonly Channel<UserEvent> _channel;
-  public UserEventConsumer(Channel<UserEvent> channel) {
-    _channel = channel;
-  }
-  protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-    await ConsumeWithNestedWhileAsync(_channel.Reader, stoppingToken);
+class TodoUserEventsProcessor : IUserEventProcessor {
+  private readonly IServiceProvider serviceProvider;
+  private readonly ILogger<TodoUserEventsProcessor> logger;
+  public TodoUserEventsProcessor(IServiceProvider serviceProvider, ILogger<TodoUserEventsProcessor> logger) {
+    this.serviceProvider = serviceProvider;
+    this.logger = logger;
   }
 
-  private static async ValueTask ConsumeWithNestedWhileAsync(
-    ChannelReader<UserEvent> reader, CancellationToken stoppingToken) {
-    while (await reader.WaitToReadAsync(stoppingToken)) {
-      while (reader.TryRead(out UserEvent userEvent)) {
-        Console.WriteLine($"Consume {userEvent}");
-      }
-    }
+  public Task ProcessAsync(UserEvent userEvent, CancellationToken stoppingToken) {
+    using var scope = serviceProvider.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbCtx>();
+
+    logger.LogInformation($"Consume {userEvent}");
+    return Task.CompletedTask;
   }
 }
+
+class TodoUserEventConsumer(Channel<UserEvent> channel, TodoUserEventsProcessor eventProcessor) : UserEventConsumerBase(channel, eventProcessor) { }
