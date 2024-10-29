@@ -1,10 +1,10 @@
 import { Layout } from '~/shared/ui/layout';
 import { Header } from '~/widgets/header';
 
-export function RootPage() {
+export function TodosPage() {
   return (
     <Layout header={<Header />}>
-      <h1>Home</h1>
+      <h1>Todos</h1>
     </Layout>
   );
 }

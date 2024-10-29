@@ -1,11 +1,11 @@
-.root {
+.page {
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   align-items: start;
   min-height: 100vh;
 }
 
-.root>header {
+.page>header {
   z-index: 20;
   position: sticky;
   top: 0;

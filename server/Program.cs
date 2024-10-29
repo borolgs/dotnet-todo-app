@@ -64,6 +64,16 @@ builder.Services.AddFluentValidationRulesToSwagger();
 
 builder.Services.AddTodoServices();
 
+
+builder.Services.AddCors(options => {
+  options.AddPolicy("AllowAll", builder => {
+    builder.AllowAnyOrigin();
+    builder.AllowAnyMethod();
+    builder.AllowAnyHeader();
+  });
+});
+
+
 var app = builder.Build();
 
 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/handle-errors?view=aspnetcore-8.0
@@ -82,6 +92,8 @@ app.UseSwaggerUI(config => {
 
 app.UseRateLimiter();
 
+app.UseCors("AllowAll");
+
 app.MapGet("/health", async (HealthCheckService healthCheckService) => {
   var report = await healthCheckService.CheckHealthAsync();
   if (report.Status == HealthStatus.Healthy) {
@@ -94,7 +106,6 @@ app.MapGet("/ready", () => Results.Ok()).ExcludeFromDescription();
 app.AddAuthEndpoints();
 
 app.AddTodosEndpoints();
-
 
 app.Run();
 
