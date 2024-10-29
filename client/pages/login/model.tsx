@@ -26,6 +26,6 @@ sample({
   clock: authorized,
   filter: loginRoute.$isOpened,
   source: $next,
-  fn: (next) => ({ path: next, params: {}, query: {}, method: 'push' } as const),
+  fn: (next) => ({ path: next, params: {}, query: {}, method: 'push' }) as const,
   target: router.push,
 });
