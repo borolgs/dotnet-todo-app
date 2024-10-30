@@ -55,11 +55,13 @@ builder.Services.AddOpenTelemetry().WithMetrics(
   }
 );
 
+builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<CreateTodoInValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
 builder.Services.AddFluentValidationRulesToSwagger();
 
 builder.Services.AddTodoServices();
@@ -85,6 +87,7 @@ app.UseHttpLogging();
 
 app.MapPrometheusScrapingEndpoint();
 
+app.MapOpenApi();
 app.UseSwagger();
 app.UseSwaggerUI(config => {
   config.DocumentTitle = "ExampleAppAPI";
