@@ -48,7 +48,7 @@ public static class AuthExtensions {
   }
 
   public static void AddAuthEndpoints(this WebApplication app) {
-    app.MapIdentityApi<User>().WithTags(["Auth"]);
+    app.MapGroup("/auth").MapIdentityApi<User>().WithTags(["Auth"]);
   }
 }
 

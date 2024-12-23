@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/register": {
+    "/auth/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -50,7 +50,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/login": {
+    "/auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -92,7 +92,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/refresh": {
+    "/auth/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -131,14 +131,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/confirmEmail": {
+    "/auth/confirmEmail": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["MapIdentityApi-/confirmEmail"];
+        get: operations["MapIdentityApi-/auth/confirmEmail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -147,7 +147,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/resendConfirmationEmail": {
+    "/auth/resendConfirmationEmail": {
         parameters: {
             query?: never;
             header?: never;
@@ -184,7 +184,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/forgotPassword": {
+    "/auth/forgotPassword": {
         parameters: {
             query?: never;
             header?: never;
@@ -230,7 +230,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/resetPassword": {
+    "/auth/resetPassword": {
         parameters: {
             query?: never;
             header?: never;
@@ -276,7 +276,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/manage/2fa": {
+    "/auth/manage/2fa": {
         parameters: {
             query?: never;
             header?: never;
@@ -331,7 +331,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/manage/info": {
+    "/auth/manage/info": {
         parameters: {
             query?: never;
             header?: never;
@@ -472,7 +472,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["Todo"];
+                    "application/json": components["schemas"]["CreateTodoIn"];
                 };
             };
             responses: {
@@ -628,6 +628,9 @@ export interface components {
             expiresIn: number;
             refreshToken: string | null;
         };
+        CreateTodoIn: {
+            name: string;
+        };
         ForgotPasswordRequest: {
             email: string | null;
         };
@@ -675,6 +678,7 @@ export interface components {
             newPassword: string | null;
         };
         Todo: {
+            userId?: string | null;
             /** Format: int32 */
             id?: number;
             name?: string | null;
@@ -704,7 +708,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    "MapIdentityApi-/confirmEmail": {
+    "MapIdentityApi-/auth/confirmEmail": {
         parameters: {
             query?: {
                 userId?: string;
