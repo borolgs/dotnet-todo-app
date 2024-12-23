@@ -24,8 +24,7 @@ pnpm openapi
 
 # Server: update deps
 dotnet tool install --global dotnet-outdated-tool
-dotnet outdated
-dotnet outdated -pre Always -u
+dotnet outdated -u
 
 # Server: migrations
 dotnet ef migrations add MigrationName --project server
