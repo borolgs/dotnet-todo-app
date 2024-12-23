@@ -1,13 +1,13 @@
-name: 'softwares_market'
+name: 'dotnet_example_app'
 
 services:
   postgres_db:
-    container_name: postgres_softwaresMarketDb2
+    container_name: dotnet_example_app_db
     image: postgres:latest
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 32167
-      POSTGRES_DB: softwaresMarketDb2
+      POSTGRES_DB: dotnet_example_app_db
     ports:
       - '5432:5432'
     volumes:

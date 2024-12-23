@@ -15,7 +15,9 @@ if (builder.Environment.IsDevelopment()) {
 }
 
 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-8.0
-builder.Logging.AddJsonConsole();
+if (!builder.Environment.IsDevelopment()) {
+  builder.Logging.AddJsonConsole();
+}
 
 // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-8.0
 builder.Services.AddHealthChecks().AddDbContextCheck<DbCtx>();
@@ -67,7 +69,7 @@ app.MapPrometheusScrapingEndpoint();
 
 app.UseSwagger();
 app.UseSwaggerUI(config => {
-  config.DocumentTitle = "SoftwareMarketAPI";
+  config.DocumentTitle = "ExampleAppAPI";
 });
 
 app.UseRateLimiter();
