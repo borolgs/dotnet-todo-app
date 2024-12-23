@@ -10,7 +10,7 @@
 		"preview": "vite preview",
 		"format": "biome format --write ./client",
 		"lint": "biome check --apply ./client",
-		"openapi": "openapi-typescript http://localhost:5000/swagger/v1/swagger.json -o client/shared/api/schema.d.ts && biome format --write client/shared/api/schema.d.ts"
+		"openapi": "openapi-typescript http://localhost:5000/openapi/v1.json -o client/shared/api/schema.d.ts && biome format --write client/shared/api/schema.d.ts"
 	},
 	"dependencies": {
 		"@effector/reflect": "9.2.0",

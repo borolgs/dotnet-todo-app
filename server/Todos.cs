@@ -1,4 +1,5 @@
 
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Threading.Channels;
 using App.Db;
@@ -17,6 +18,7 @@ public class Todo {
 }
 
 public class CreateTodoIn {
+  [Required]
   public required string Name { get; set; }
 }
 
@@ -25,6 +27,7 @@ public class CreateTodoInValidator : AbstractValidator<CreateTodoIn> {
     RuleFor(s => s.Name).NotNull().MinimumLength(3);
   }
 }
+
 
 
 public static class Todos {

@@ -20,7 +20,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['RegisterRequest'];
         };
@@ -69,7 +69,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['LoginRequest'];
         };
@@ -108,7 +108,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['RefreshRequest'];
         };
@@ -163,7 +163,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['ResendConfirmationEmailRequest'];
         };
@@ -200,7 +200,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['ForgotPasswordRequest'];
         };
@@ -246,7 +246,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['ResetPasswordRequest'];
         };
@@ -292,7 +292,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['TwoFactorRequest'];
         };
@@ -382,7 +382,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           'application/json': components['schemas']['InfoRequest'];
         };
@@ -437,8 +437,15 @@ export interface paths {
       };
       requestBody?: never;
       responses: {
-        /** @description OK */
-        200: {
+        /** @description No Content */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Bad Request */
+        400: {
           headers: {
             [name: string]: unknown;
           };
@@ -655,17 +662,17 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     AccessTokenResponse: {
-      readonly tokenType?: string | null;
-      accessToken: string | null;
+      tokenType?: string | null;
+      accessToken: string;
       /** Format: int64 */
       expiresIn: number;
-      refreshToken: string | null;
+      refreshToken: string;
     };
     CreateTodoIn: {
       name: string;
     };
     ForgotPasswordRequest: {
-      email: string | null;
+      email: string;
     };
     HttpValidationProblemDetails: {
       type?: string | null;
@@ -676,9 +683,7 @@ export interface components {
       instance?: string | null;
       errors?: {
         [key: string]: string[];
-      } | null;
-    } & {
-      [key: string]: unknown;
+      };
     };
     InfoRequest: {
       newEmail?: string | null;
@@ -686,29 +691,29 @@ export interface components {
       oldPassword?: string | null;
     };
     InfoResponse: {
-      email: string | null;
+      email: string;
       isEmailConfirmed: boolean;
     };
     LoginRequest: {
-      email: string | null;
-      password: string | null;
+      email: string;
+      password: string;
       twoFactorCode?: string | null;
       twoFactorRecoveryCode?: string | null;
     };
     RefreshRequest: {
-      refreshToken: string | null;
+      refreshToken: string;
     };
     RegisterRequest: {
-      email: string | null;
-      password: string | null;
+      email: string;
+      password: string;
     };
     ResendConfirmationEmailRequest: {
-      email: string | null;
+      email: string;
     };
     ResetPasswordRequest: {
-      email: string | null;
-      resetCode: string | null;
-      newPassword: string | null;
+      email: string;
+      resetCode: string;
+      newPassword: string;
     };
     Todo: {
       userId?: string | null;
@@ -725,7 +730,7 @@ export interface components {
       forgetMachine?: boolean;
     };
     TwoFactorResponse: {
-      sharedKey: string | null;
+      sharedKey: string;
       /** Format: int32 */
       recoveryCodesLeft: number;
       recoveryCodes?: string[] | null;
@@ -743,9 +748,9 @@ export type $defs = Record<string, never>;
 export interface operations {
   'MapIdentityApi-/auth/confirmEmail': {
     parameters: {
-      query?: {
-        userId?: string;
-        code?: string;
+      query: {
+        userId: string;
+        code: string;
         changedEmail?: string;
       };
       header?: never;
