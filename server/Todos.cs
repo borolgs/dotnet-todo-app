@@ -14,9 +14,9 @@ public class Todo {
 public static class Todos {
   public static void RegisterTodosRoutes(this WebApplication app) {
 
-    var router = app.MapGroup("/").WithOpenApi();
+    var router = app.MapGroup("/").RequireAuthorization().WithOpenApi();
 
-    router.MapGet("/api/v1/todos", GetAllTodos).RequireAuthorization();
+    router.MapGet("/api/v1/todos", GetAllTodos);
     router.MapGet("/api/v1/todos/complete", GetCompleteTodos);
     router.MapGet("/api/v1/todos/{id}", GetTodo);
     router.MapPost("/api/v1/todos", CreateTodo);
@@ -44,7 +44,7 @@ public static class Todos {
     db.Todos.Add(todo);
     await db.SaveChangesAsync();
 
-    return TypedResults.Created($"/todoitems/{todo.Id}", todo);
+    return TypedResults.Created($"/api/v1/todos/{todo.Id}", todo);
   }
 
   static async Task<IResult> UpdateTodo(int id, Todo inputTodo, DbCtx db) {
