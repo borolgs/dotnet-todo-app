@@ -1,39 +1,44 @@
 {
-  "name": "example-app-frontend",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@effector/reflect": "9.2.0",
-    "@farfetched/core": "0.12.8",
-    "@picocss/pico": "^2.0.6",
-    "atomic-router": "0.10.1",
-    "atomic-router-react": "0.10.0",
-    "effector": "23.2.2",
-    "effector-react": "23.2.1",
-    "history": "5.3.0",
-    "openapi-fetch": "^0.13.0",
-    "patronum": "2.2.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "@babel/core": "7.25.2",
-    "@babel/preset-env": "7.25.4",
-    "@babel/preset-react": "7.24.7",
-    "@babel/preset-typescript": "7.24.7",
-    "@rollup/plugin-babel": "6.0.4",
-    "@types/node": "22.5.5",
-    "@types/react": "18.2.15",
-    "@types/react-dom": "18.2.7",
-    "@vitejs/plugin-react": "4.2.1",
-    "openapi-typescript": "^7.4.2",
-    "typescript": "5.2.2",
-    "vite": "5.3.1"
-  }
+	"name": "example-app-frontend",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"dev:back": "dotnet watch --project server",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"format": "biome format --write ./client",
+		"lint": "biome check --apply ./client",
+		"openapi": "openapi-typescript http://localhost:5000/swagger/v1/swagger.json -o client/shared/api/schema.d.ts && biome format --write client/shared/api/schema.d.ts"
+	},
+	"dependencies": {
+		"@effector/reflect": "9.2.0",
+		"@farfetched/core": "0.12.8",
+		"@picocss/pico": "^2.0.6",
+		"atomic-router": "0.10.1",
+		"atomic-router-react": "0.10.0",
+		"effector": "23.2.2",
+		"effector-react": "23.2.1",
+		"history": "5.3.0",
+		"openapi-fetch": "^0.13.0",
+		"patronum": "2.2.0",
+		"react": "18.2.0",
+		"react-dom": "18.2.0"
+	},
+	"devDependencies": {
+		"@babel/core": "7.25.2",
+		"@babel/preset-env": "7.25.4",
+		"@babel/preset-react": "7.24.7",
+		"@babel/preset-typescript": "7.24.7",
+		"@biomejs/biome": "^1.9.4",
+		"@rollup/plugin-babel": "6.0.4",
+		"@types/node": "22.5.5",
+		"@types/react": "18.2.15",
+		"@types/react-dom": "18.2.7",
+		"@vitejs/plugin-react": "4.2.1",
+		"openapi-typescript": "^7.4.2",
+		"typescript": "5.2.2",
+		"vite": "5.3.1"
+	}
 }

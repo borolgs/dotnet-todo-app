@@ -1,0 +1,18 @@
+{
+	"editor.defaultFormatter": "biomejs.biome",
+	"[rust]": {
+		"editor.defaultFormatter": "rust-lang.rust-analyzer"
+	},
+	"editor.codeActionsOnSave": {
+		"quickfix.biome": "explicit"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	}
+}
