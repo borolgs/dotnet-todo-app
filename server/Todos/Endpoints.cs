@@ -9,7 +9,7 @@ namespace App.Todos;
 public static partial class Todos {
 
   public static void AddTodoServices(this IServiceCollection services) {
-    services.AddChannelBasedProcessing<UserEvent, TodoUserEventsProcessor, TodoUserEventConsumer>();
+    services.AddChannelBasedConsumer<UserEvent, TodoUserEventConsumer>();
 
     services.AddScoped(provider => {
       var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();

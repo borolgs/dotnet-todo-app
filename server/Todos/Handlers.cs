@@ -40,8 +40,12 @@ public class CreateTodoInValidator : AbstractValidator<CreateTodoIn> {
 }
 
 public static partial class Todos {
-  static async Task<Results<Created<CreateTodoOut>, InternalServerError, NotFound, BadRequest>> CreateTodo
-      (CreateTodoIn todoIn, Ctx ctx, DbCtx db) {
+  static async Task<Results<
+    Created<CreateTodoOut>,
+    InternalServerError,
+    NotFound,
+    BadRequest
+  >> CreateTodo(CreateTodoIn todoIn, Ctx ctx, DbCtx db) {
     var editor = await ctx.CurrentEditor();
 
     var todo = new Todo {
