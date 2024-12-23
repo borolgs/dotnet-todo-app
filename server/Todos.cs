@@ -1,4 +1,5 @@
 
+using System.Security.Claims;
 using App.Db;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -8,6 +9,7 @@ using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 namespace App;
 
 public class Todo {
+  public string? UserId { get; set; }
   public int Id { get; set; }
   public string? Name { get; set; }
   public bool IsComplete { get; set; }
@@ -19,7 +21,7 @@ public class CreateTodoIn {
 
 public class CreateTodoInValidator : AbstractValidator<CreateTodoIn> {
   public CreateTodoInValidator() {
-    RuleFor(sample => sample.Name).NotNull().MinimumLength(3);
+    RuleFor(s => s.Name).NotNull().MinimumLength(3);
   }
 }
 
@@ -56,8 +58,11 @@ public static class Todos {
             : TypedResults.NotFound();
   }
 
-  static async Task<Results<Created<Todo>, NotFound, BadRequest>> CreateTodo(CreateTodoIn todoIn, DbCtx db) {
+  static async Task<Results<Created<Todo>, NotFound, BadRequest>> CreateTodo(CreateTodoIn todoIn, ClaimsPrincipal user, DbCtx db) {
+    var userId = user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+
     var todo = new Todo {
+      UserId = userId,
       Name = todoIn.Name
     };
     db.Todos.Add(todo);

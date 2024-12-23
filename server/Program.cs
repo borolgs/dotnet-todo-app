@@ -24,6 +24,8 @@ if (builder.Environment.IsDevelopment()) {
 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-8.0
 if (!builder.Environment.IsDevelopment()) {
   builder.Logging.AddJsonConsole();
+} else {
+  builder.Logging.AddConsole();
 }
 
 // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-8.0
@@ -35,10 +37,7 @@ builder.Services.AddRateLimiter(o => o
       // configuration
     }));
 
-// https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization?view=aspnetcore-8.0
-builder.Services.AddAuthorization();
-builder.Services.AddIdentityApiEndpoints<IdentityUser>()
-    .AddEntityFrameworkStores<DbCtx>();
+builder.Services.AddAuthServices(builder.Environment);
 
 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-logging/?view=aspnetcore-8.0#http-logging-options
 builder.Services.AddHttpLogging(options => { });
@@ -91,7 +90,7 @@ app.MapGet("/health", async (HealthCheckService healthCheckService) => {
 }).ExcludeFromDescription();
 app.MapGet("/ready", () => Results.Ok()).ExcludeFromDescription();
 
-app.MapIdentityApi<IdentityUser>().WithTags(["Auth"]);
+app.AddAuthEndpoints();
 
 app.RegisterTodosRoutes();
 
