@@ -15,7 +15,14 @@ const SignIn = () => {
   ]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '50px' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginTop: '50px',
+      }}
+    >
       <h2>Sign In</h2>
       <form
         onSubmit={(e) => {

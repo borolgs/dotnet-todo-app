@@ -14,7 +14,10 @@ export const viewerQuery = createQuery({
 
 export const signInQuery = createQuery({
   handler: async (args: components['schemas']['LoginRequest']) => {
-    return await client.POST('/auth/login', { body: args, params: { query: { useCookies: true } } });
+    return await client.POST('/auth/login', {
+      body: args,
+      params: { query: { useCookies: true } },
+    });
   },
 });
 
