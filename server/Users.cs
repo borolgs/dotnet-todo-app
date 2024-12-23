@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using App.Db;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -8,25 +9,8 @@ namespace App;
 public class User : IdentityUser<Guid> { }
 
 public abstract record UserEvent;
-public record UserCreated(User user) : UserEvent;
-
-public class ApplicationUserManager : UserManager<User> {
-  private readonly Channel<UserEvent> channel;
-  public ApplicationUserManager(IUserStore<User> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<User> passwordHasher, IEnumerable<IUserValidator<User>> userValidators, IEnumerable<IPasswordValidator<User>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<User>> logger, Channel<UserEvent> channel) : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger) {
-    this.channel = channel;
-  }
-
-  public override async Task<IdentityResult> CreateAsync(User user, string password) {
-    var result = await base.CreateAsync(user, password);
-
-    if (result.Succeeded) {
-      Logger.LogInformation("User Created");
-      await channel.Writer.WriteAsync(new UserCreated(user));
-    }
-
-    return result;
-  }
-}
+public record UserCreated(User User) : UserEvent;
+public record UserSignedIn(User User) : UserEvent;
 
 public static class AuthExtensions {
   public static void AddAuthServices(this IServiceCollection services, IWebHostEnvironment environment) {
@@ -53,6 +37,8 @@ public static class AuthExtensions {
         .AddApiEndpoints()
         .AddEntityFrameworkStores<DbCtx>();
 
+    services.AddScoped<SignInManager<User>, ApplicationSignInManager>();
+
     services.ConfigureApplicationCookie(options => {
       options.Events.OnRedirectToLogin = context => {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -64,6 +50,46 @@ public static class AuthExtensions {
   public static void AddAuthEndpoints(this WebApplication app) {
     app.MapIdentityApi<User>().WithTags(["Auth"]);
   }
+}
+
+public class ApplicationUserManager : UserManager<User> {
+  private readonly Channel<UserEvent> channel;
+  public ApplicationUserManager(IUserStore<User> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<User> passwordHasher, IEnumerable<IUserValidator<User>> userValidators, IEnumerable<IPasswordValidator<User>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<User>> logger, Channel<UserEvent> channel) : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger) {
+    this.channel = channel;
+  }
+
+  public override async Task<IdentityResult> CreateAsync(User user, string password) {
+    var result = await base.CreateAsync(user, password);
+
+    if (result.Succeeded) {
+      Logger.LogInformation("User Created");
+      await channel.Writer.WriteAsync(new UserCreated(user));
+    }
+
+    return result;
+  }
+}
+
+public class ApplicationSignInManager : SignInManager<User> {
+  private readonly Channel<UserEvent> channel;
+
+  public ApplicationSignInManager(UserManager<User> userManager, IHttpContextAccessor contextAccessor, IUserClaimsPrincipalFactory<User> claimsFactory, IOptions<IdentityOptions> optionsAccessor, ILogger<SignInManager<User>> logger, IAuthenticationSchemeProvider schemes, IUserConfirmation<User> confirmation, Channel<UserEvent> channel) : base(userManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation) {
+    this.channel = channel;
+  }
+
+  public override async Task<SignInResult> PasswordSignInAsync(string userName, string password, bool isPersistent, bool lockoutOnFailure) {
+    var result = await base.PasswordSignInAsync(userName, password, isPersistent, lockoutOnFailure);
+
+    if (result.Succeeded) {
+      var user = await UserManager.FindByNameAsync(userName);
+      if (user != null) {
+        await channel.Writer.WriteAsync(new UserSignedIn(user));
+      }
+    }
+
+    return result;
+  }
+
 }
 
 public interface IUserEventProcessor {
