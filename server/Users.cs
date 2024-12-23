@@ -5,25 +5,23 @@ using Microsoft.Extensions.Options;
 
 namespace App;
 
-public class User : IdentityUser {
-
-}
+public class User : IdentityUser<Guid> { }
 
 public abstract record UserEvent;
 public record UserCreated(User user) : UserEvent;
 
 public class ApplicationUserManager : UserManager<User> {
-  private readonly Channel<UserEvent> _channel;
+  private readonly Channel<UserEvent> channel;
   public ApplicationUserManager(IUserStore<User> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<User> passwordHasher, IEnumerable<IUserValidator<User>> userValidators, IEnumerable<IPasswordValidator<User>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<User>> logger, Channel<UserEvent> channel) : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger) {
-    _channel = channel;
+    this.channel = channel;
   }
 
   public override async Task<IdentityResult> CreateAsync(User user, string password) {
     var result = await base.CreateAsync(user, password);
 
     if (result.Succeeded) {
-      await _channel.Writer.WriteAsync(new UserCreated(user));
       Logger.LogInformation("User Created");
+      await channel.Writer.WriteAsync(new UserCreated(user));
     }
 
     return result;
@@ -38,7 +36,7 @@ public static class AuthExtensions {
     // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-8.0#change-the-primary-key-type
     services.AddAuthorization();
     services
-        .AddIdentity<User, IdentityRole>(options => {
+        .AddIdentity<User, IdentityRole<Guid>>(options => {
           if (environment.IsDevelopment()) {
             options.Password.RequireDigit = false;
             options.Password.RequireLowercase = false;
