@@ -67,3 +67,37 @@ public static class AuthExtensions {
     app.MapIdentityApi<User>().WithTags(["Auth"]);
   }
 }
+
+public interface IUserEventProcessor {
+  Task ProcessAsync(UserEvent userEvent, CancellationToken stoppingToken);
+}
+
+public abstract class UserEventConsumerBase : BackgroundService {
+  private readonly Channel<UserEvent> channel;
+  protected readonly IUserEventProcessor eventProcessor;
+
+
+  protected UserEventConsumerBase(Channel<UserEvent> channel, IUserEventProcessor eventProcessor) {
+    this.channel = channel;
+    this.eventProcessor = eventProcessor;
+  }
+
+  protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+    await ConsumeWithNestedWhileAsync(channel.Reader, stoppingToken);
+  }
+
+  private async ValueTask ConsumeWithNestedWhileAsync(
+      ChannelReader<UserEvent> reader, CancellationToken stoppingToken) {
+    while (await reader.WaitToReadAsync(stoppingToken).ConfigureAwait(false)) {
+      while (reader.TryRead(out UserEvent? userEvent)) {
+        if (userEvent != null) {
+          await ProcessEventAsync(userEvent, stoppingToken);
+        }
+      }
+    }
+  }
+
+  private async Task ProcessEventAsync(UserEvent userEvent, CancellationToken stoppingToken) {
+    await eventProcessor.ProcessAsync(userEvent, stoppingToken);
+  }
+}
