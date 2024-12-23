@@ -1,6 +1,7 @@
 using System.Threading.Channels;
 using App.Db;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -48,7 +49,14 @@ public static class AuthExtensions {
   }
 
   public static void AddAuthEndpoints(this WebApplication app) {
-    app.MapGroup("/auth").MapIdentityApi<User>().WithTags(["Auth"]);
+    var authRouter = app.MapGroup("/auth").WithOpenApi().WithTags(["Auth"]);
+
+    authRouter.MapIdentityApi<User>();
+
+    authRouter.MapGet("/logout", async Task<Results<NoContent, BadRequest>> (SignInManager<User> m) => {
+      await m.SignOutAsync();
+      return TypedResults.NoContent();
+    });
   }
 }
 
