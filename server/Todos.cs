@@ -1,5 +1,6 @@
 
 using System.Security.Claims;
+using System.Threading.Channels;
 using App.Db;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -27,7 +28,12 @@ public class CreateTodoInValidator : AbstractValidator<CreateTodoIn> {
 
 
 public static class Todos {
-  public static void RegisterTodosRoutes(this WebApplication app) {
+
+  public static void AddTodoServices(this IServiceCollection services) {
+    services.AddHostedService<UserEventConsumer>();
+  }
+
+  public static void AddTodosEndpoints(this WebApplication app) {
 
     var router = app.MapGroup("/")
     .RequireAuthorization()
@@ -96,4 +102,21 @@ public static class Todos {
 
 }
 
+class UserEventConsumer : BackgroundService {
+  private readonly Channel<UserEvent> _channel;
+  public UserEventConsumer(Channel<UserEvent> channel) {
+    _channel = channel;
+  }
+  protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+    await ConsumeWithNestedWhileAsync(_channel.Reader, stoppingToken);
+  }
 
+  private static async ValueTask ConsumeWithNestedWhileAsync(
+    ChannelReader<UserEvent> reader, CancellationToken stoppingToken) {
+    while (await reader.WaitToReadAsync(stoppingToken)) {
+      while (reader.TryRead(out UserEvent userEvent)) {
+        Console.WriteLine($"Consume {userEvent}");
+      }
+    }
+  }
+}

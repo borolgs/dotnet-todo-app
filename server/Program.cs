@@ -63,6 +63,8 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTodoInValidator>();
 builder.Services.AddFluentValidationRulesToSwagger();
 
+builder.Services.AddTodoServices();
+
 var app = builder.Build();
 
 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/handle-errors?view=aspnetcore-8.0
@@ -92,7 +94,7 @@ app.MapGet("/ready", () => Results.Ok()).ExcludeFromDescription();
 
 app.AddAuthEndpoints();
 
-app.RegisterTodosRoutes();
+app.AddTodosEndpoints();
 
 
 app.Run();
