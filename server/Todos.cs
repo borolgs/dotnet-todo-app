@@ -11,10 +11,17 @@ using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 namespace App;
 
 public class Todo {
-  public string? UserId { get; set; }
   public int Id { get; set; }
+  public Guid EditorId { get; set; }
+  public Editor Editor { get; set; } = null!;
   public string? Name { get; set; }
   public bool IsComplete { get; set; }
+}
+
+public class Editor {
+  public Guid Id { get; set; }
+  public User User { get; set; } = null!;
+  public List<Todo> Todos { get; set; } = new();
 }
 
 public class CreateTodoIn {
@@ -22,13 +29,18 @@ public class CreateTodoIn {
   public required string Name { get; set; }
 }
 
+public class CreateTodoOut {
+  public int Id { get; set; }
+  public Guid EditorId { get; set; }
+  public string? Name { get; set; }
+  public bool IsComplete { get; set; }
+}
+
 public class CreateTodoInValidator : AbstractValidator<CreateTodoIn> {
   public CreateTodoInValidator() {
     RuleFor(s => s.Name).NotNull().MinimumLength(3);
   }
 }
-
-
 
 public static class Todos {
 
@@ -42,14 +54,40 @@ public static class Todos {
     var router = app.MapGroup("/")
     .RequireAuthorization()
     .AddFluentValidationAutoValidation()
-    .WithOpenApi();
+    .WithOpenApi().WithTags(["Todos"]);
 
-    router.MapGet("/api/v1/todos", GetAllTodos);
-    router.MapGet("/api/v1/todos/complete", GetCompleteTodos);
+    router.MapPost("/api/v1/todos",
+      async Task<Results<Created<CreateTodoOut>, InternalServerError, NotFound, BadRequest>>
+      (CreateTodoIn todoIn, ClaimsPrincipal user, DbCtx db) => {
+        var userId = new Guid(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var editor = await db.Editors.FindAsync(userId);
+
+        if (editor == null) {
+          app.Logger.LogError($"No Editor {userId}");
+          return TypedResults.InternalServerError();
+        }
+
+        var todo = new Todo {
+          EditorId = userId,
+          Name = todoIn.Name
+        };
+
+        db.Todos.Add(todo);
+        await db.SaveChangesAsync();
+
+        return TypedResults.Created($"/api/v1/todos/{todo.Id}", new CreateTodoOut {
+          Id = todo.Id,
+          EditorId = editor.Id,
+          Name = todo.Name,
+          IsComplete = todo.IsComplete
+        });
+      });
+
     router.MapGet("/api/v1/todos/{id}", GetTodo);
-    router.MapPost("/api/v1/todos", CreateTodo);
     router.MapPut("/api/v1/todos/{id}", UpdateTodo);
     router.MapDelete("/api/v1/todos/{id}", DeleteTodo);
+    router.MapGet("/api/v1/todos", GetAllTodos);
+    router.MapGet("/api/v1/todos/complete", GetCompleteTodos);
   }
 
   public static async Task<Results<Ok<Todo[]>, NotFound, BadRequest>> GetAllTodos(DbCtx db, HttpContext context) {
@@ -69,10 +107,9 @@ public static class Todos {
   }
 
   static async Task<Results<Created<Todo>, NotFound, BadRequest>> CreateTodo(CreateTodoIn todoIn, ClaimsPrincipal user, DbCtx db) {
-    var userId = user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-
+    var userId = new Guid(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
     var todo = new Todo {
-      UserId = userId,
+      EditorId = userId,
       Name = todoIn.Name
     };
     db.Todos.Add(todo);
@@ -105,20 +142,25 @@ public static class Todos {
   }
 }
 
-class TodoUserEventsProcessor : IUserEventProcessor {
-  private readonly IServiceProvider serviceProvider;
-  private readonly ILogger<TodoUserEventsProcessor> logger;
-  public TodoUserEventsProcessor(IServiceProvider serviceProvider, ILogger<TodoUserEventsProcessor> logger) {
-    this.serviceProvider = serviceProvider;
-    this.logger = logger;
-  }
+class TodoUserEventsProcessor(IServiceProvider serviceProvider) : IUserEventProcessor {
+  private readonly IServiceProvider serviceProvider = serviceProvider;
 
-  public Task ProcessAsync(UserEvent userEvent, CancellationToken stoppingToken) {
+  public async Task ProcessAsync(UserEvent userEvent, CancellationToken stoppingToken) {
     using var scope = serviceProvider.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<DbCtx>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<TodoUserEventsProcessor>>();
 
     logger.LogInformation($"Consume {userEvent}");
-    return Task.CompletedTask;
+    var db = scope.ServiceProvider.GetRequiredService<DbCtx>();
+
+    if (userEvent is UserCreated userCreatedEvent) {
+      var Id = userCreatedEvent.User.Id;
+      var editor = new Editor {
+        Id = Id,
+      };
+      db.Editors.Add(editor);
+      await db.SaveChangesAsync(stoppingToken);
+      logger.LogInformation($"Editor {Id} Created");
+    }
   }
 }
 

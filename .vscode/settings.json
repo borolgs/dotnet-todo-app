@@ -1,7 +1,7 @@
 {
 	"editor.defaultFormatter": "biomejs.biome",
-	"[rust]": {
-		"editor.defaultFormatter": "rust-lang.rust-analyzer"
+	"[csharp]": {
+		"editor.defaultFormatter": "ms-dotnettools.csharp"
 	},
 	"editor.codeActionsOnSave": {
 		"quickfix.biome": "explicit"
