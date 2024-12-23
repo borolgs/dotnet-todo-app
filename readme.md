@@ -13,12 +13,19 @@ dotnet ef database update --project server
 
 dotnet watch --project server
 
+dotnet test
+
 # Client
 npm i -g pnpm
 pnpm dev
 
 # Client: generate client types
 pnpm openapi
+
+# Server: update deps
+dotnet tool install --global dotnet-outdated-tool
+dotnet outdated
+dotnet outdated -pre Always -u
 ```
 
 ## API
