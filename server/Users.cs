@@ -32,7 +32,7 @@ public static class AuthExtensions {
             options.Password.RequiredUniqueChars = 1;
           }
 
-          options.SignIn.RequireConfirmedEmail = false;
+          // options.SignIn.RequireConfirmedEmail = false;
           options.SignIn.RequireConfirmedPhoneNumber = false;
         })
         .AddUserManager<ApplicationUserManager>()
@@ -40,6 +40,8 @@ public static class AuthExtensions {
         .AddEntityFrameworkStores<DbCtx>();
 
     services.AddScoped<SignInManager<User>, ApplicationSignInManager>();
+    services.AddTransient<IEmailSender<User>, EmailSender>();
+
 
     services.ConfigureApplicationCookie(options => {
       options.Events.OnRedirectToLogin = context => {
@@ -52,7 +54,18 @@ public static class AuthExtensions {
   public static void AddAuthEndpoints(this WebApplication app) {
     var authRouter = app.MapGroup("/auth").WithOpenApi().WithTags(["Auth"]);
 
-    authRouter.MapIdentityApi<User>();
+    authRouter.MapIdentityApi<User>().AddEndpointFilter(async (invocationContext, next) => {
+      var result = await next(invocationContext);
+
+      var isMailConfirmRoute = invocationContext.HttpContext.Request.Path.StartsWithSegments("/auth/confirmEmail");
+      var isSuccess = invocationContext.HttpContext.Response.StatusCode == 200;
+
+      if (isMailConfirmRoute && isSuccess) {
+        return Results.Redirect("/");
+      }
+
+      return result;
+    });
 
     authRouter.MapGet("/logout", async Task<Results<NoContent, BadRequest>> (SignInManager<User> m) => {
       await m.SignOutAsync();
@@ -61,11 +74,19 @@ public static class AuthExtensions {
   }
 }
 
-public class ApplicationUserManager : UserManager<User> {
-  private readonly Channel<UserEvent> channel;
-  public ApplicationUserManager(IUserStore<User> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<User> passwordHasher, IEnumerable<IUserValidator<User>> userValidators, IEnumerable<IPasswordValidator<User>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<User>> logger, Channel<UserEvent> channel) : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger) {
-    this.channel = channel;
-  }
+public class ApplicationUserManager(
+    IUserStore<User> store,
+    IOptions<IdentityOptions> optionsAccessor,
+    IPasswordHasher<User> passwordHasher,
+    IEnumerable<IUserValidator<User>> userValidators,
+    IEnumerable<IPasswordValidator<User>> passwordValidators,
+    ILookupNormalizer keyNormalizer,
+    IdentityErrorDescriber errors,
+    IServiceProvider services,
+    ILogger<UserManager<User>> logger,
+    Channel<UserEvent> channel
+  ) : UserManager<User>(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger) {
+  private readonly Channel<UserEvent> channel = channel;
 
   public override async Task<IdentityResult> CreateAsync(User user, string password) {
     var result = await base.CreateAsync(user, password);
@@ -97,6 +118,19 @@ public class ApplicationSignInManager(UserManager<User> userManager, IHttpContex
 
 }
 
-public interface IUserEventProcessor {
-  Task ProcessAsync(UserEvent userEvent, CancellationToken stoppingToken);
+public class EmailSender(ILogger<EmailSender> logger) : IEmailSender<User> {
+  public Task SendConfirmationLinkAsync(User user, string email, string confirmationLink) {
+    logger.LogInformation($"SendConfirmationLinkAsync {email} {confirmationLink}");
+    return Task.CompletedTask;
+  }
+
+  public Task SendPasswordResetCodeAsync(User user, string email, string resetCode) {
+    logger.LogInformation($"SendPasswordResetCodeAsync {email} {resetCode}");
+    return Task.CompletedTask;
+  }
+
+  public Task SendPasswordResetLinkAsync(User user, string email, string resetLink) {
+    logger.LogInformation($"SendPasswordResetLinkAsync {email} {resetLink}");
+    return Task.CompletedTask;
+  }
 }
