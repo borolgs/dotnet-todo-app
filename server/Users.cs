@@ -16,6 +16,7 @@ public record UserSignedIn(User User) : UserEvent;
 public static class AuthExtensions {
   public static void AddAuthServices(this IServiceCollection services, IWebHostEnvironment environment) {
     services.AddSingleton(Channel.CreateUnbounded<UserEvent>());
+
     // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-configuration?view=aspnetcore-8.0
     // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-8.0&tabs=net-cli#examine-register
     // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-8.0#change-the-primary-key-type
