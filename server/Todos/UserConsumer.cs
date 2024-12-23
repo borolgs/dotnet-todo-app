@@ -1,9 +1,15 @@
 using System.Threading.Channels;
 using App.Db;
+using App.Shared;
 
 namespace App.Todos;
 
-class TodoUserEventsProcessor(IServiceProvider serviceProvider) : IUserEventProcessor {
+class TodoUserEventConsumer(
+  Channel<UserEvent> channel,
+  IServiceProvider serviceProvider
+) : ChannelConsumerBase<UserEvent>(channel, serviceProvider) { }
+
+class TodoUserEventsProcessor(IServiceProvider serviceProvider) : IEventProcessor<UserEvent> {
   private readonly IServiceProvider serviceProvider = serviceProvider;
 
   public async Task ProcessAsync(UserEvent userEvent, CancellationToken stoppingToken) {
@@ -24,5 +30,3 @@ class TodoUserEventsProcessor(IServiceProvider serviceProvider) : IUserEventProc
     }
   }
 }
-
-class TodoUserEventConsumer(Channel<UserEvent> channel, TodoUserEventsProcessor eventProcessor) : UserEventConsumerBase(channel, eventProcessor) { }

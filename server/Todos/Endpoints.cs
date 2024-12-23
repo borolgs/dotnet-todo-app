@@ -1,5 +1,6 @@
 
 using App.Db;
+using App.Shared;
 using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
 namespace App.Todos;
@@ -8,8 +9,8 @@ namespace App.Todos;
 public static partial class Todos {
 
   public static void AddTodoServices(this IServiceCollection services) {
-    services.AddHostedService<TodoUserEventConsumer>();
-    services.AddSingleton<TodoUserEventsProcessor>();
+    services.AddChannelBasedProcessing<UserEvent, TodoUserEventsProcessor, TodoUserEventConsumer>();
+
     services.AddScoped(provider => {
       var httpContextAccessor = provider.GetRequiredService<IHttpContextAccessor>();
       var dbContext = provider.GetRequiredService<DbCtx>();

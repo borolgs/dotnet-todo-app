@@ -79,12 +79,8 @@ public class ApplicationUserManager : UserManager<User> {
   }
 }
 
-public class ApplicationSignInManager : SignInManager<User> {
-  private readonly Channel<UserEvent> channel;
-
-  public ApplicationSignInManager(UserManager<User> userManager, IHttpContextAccessor contextAccessor, IUserClaimsPrincipalFactory<User> claimsFactory, IOptions<IdentityOptions> optionsAccessor, ILogger<SignInManager<User>> logger, IAuthenticationSchemeProvider schemes, IUserConfirmation<User> confirmation, Channel<UserEvent> channel) : base(userManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation) {
-    this.channel = channel;
-  }
+public class ApplicationSignInManager(UserManager<User> userManager, IHttpContextAccessor contextAccessor, IUserClaimsPrincipalFactory<User> claimsFactory, IOptions<IdentityOptions> optionsAccessor, ILogger<SignInManager<User>> logger, IAuthenticationSchemeProvider schemes, IUserConfirmation<User> confirmation, Channel<UserEvent> channel) : SignInManager<User>(userManager, contextAccessor, claimsFactory, optionsAccessor, logger, schemes, confirmation) {
+  private readonly Channel<UserEvent> channel = channel;
 
   public override async Task<SignInResult> PasswordSignInAsync(string userName, string password, bool isPersistent, bool lockoutOnFailure) {
     var result = await base.PasswordSignInAsync(userName, password, isPersistent, lockoutOnFailure);
@@ -103,34 +99,4 @@ public class ApplicationSignInManager : SignInManager<User> {
 
 public interface IUserEventProcessor {
   Task ProcessAsync(UserEvent userEvent, CancellationToken stoppingToken);
-}
-
-public abstract class UserEventConsumerBase : BackgroundService {
-  private readonly Channel<UserEvent> channel;
-  protected readonly IUserEventProcessor eventProcessor;
-
-
-  protected UserEventConsumerBase(Channel<UserEvent> channel, IUserEventProcessor eventProcessor) {
-    this.channel = channel;
-    this.eventProcessor = eventProcessor;
-  }
-
-  protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-    await ConsumeWithNestedWhileAsync(channel.Reader, stoppingToken);
-  }
-
-  private async ValueTask ConsumeWithNestedWhileAsync(
-      ChannelReader<UserEvent> reader, CancellationToken stoppingToken) {
-    while (await reader.WaitToReadAsync(stoppingToken).ConfigureAwait(false)) {
-      while (reader.TryRead(out UserEvent? userEvent)) {
-        if (userEvent != null) {
-          await ProcessEventAsync(userEvent, stoppingToken);
-        }
-      }
-    }
-  }
-
-  private async Task ProcessEventAsync(UserEvent userEvent, CancellationToken stoppingToken) {
-    await eventProcessor.ProcessAsync(userEvent, stoppingToken);
-  }
 }
